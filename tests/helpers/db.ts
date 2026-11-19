@@ -12,10 +12,15 @@ export function migrationFiles(): string[] {
   return readdirSync(migrationsDir).filter((f) => f.endsWith('.sql')).sort();
 }
 
-/** A fresh in-memory Postgres with the Supabase stand-in and every migration applied. */
-export async function freshDb(): Promise<Db> {
+/**
+ * A fresh in-memory Postgres with the Supabase stand-in and every migration applied.
+ * With `prototype: true` a lookalike of the Lovable prototype's database is built
+ * first, so the migrations run against the tables they will meet on Lovable.
+ */
+export async function freshDb(opts: { prototype?: boolean } = {}): Promise<Db> {
   const db = new PGlite();
   await db.exec(readFileSync(join(here, 'supabase_shim.sql'), 'utf8'));
+  if (opts.prototype) await db.exec(readFileSync(join(here, 'prototype_fixture.sql'), 'utf8'));
   for (const f of migrationFiles()) {
     try {
       await db.exec(readFileSync(join(migrationsDir, f), 'utf8'));

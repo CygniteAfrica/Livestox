@@ -94,6 +94,22 @@ An independent review of increments 1 to 4 found defects. Each criterion below c
 - AC-5.13 The last units of a listing can be bought even when below the minimum.
 - AC-5.14 History tables cannot be emptied, trades cannot be deleted, and the balance checks hold for a role that cannot see the rows.
 
+### Increment 6: installing beside the Lovable prototype
+
+The Lovable project's database already holds the prototype's tables and demo data. Four of its tables share names with the core.
+
+- AC-6.1 Every migration applies to a database that holds the prototype, and no old row is lost. The prototype's tables, types and functions move to a schema called `legacy`.
+- AC-6.2 The tables in `public` are the core. Tables and functions that Lovable manages itself (email) stay where they are.
+- AC-6.3 App users and visitors cannot reach the old data.
+- AC-6.4 Accounts that already existed get a profile, with the name and phone they had. A phone number not in international format is left out.
+- AC-6.5 An admin of the prototype is an admin of the core, and nobody else is.
+- AC-6.6 A new account gets a core profile and no longer writes to the old tables.
+- AC-6.7 A carried-over account can use the core.
+- AC-6.8 Running the move a second time changes nothing.
+- AC-6.9 On a database with no prototype, nothing is moved and no `legacy` schema is made.
+- AC-6.10 A smoke script for a real Supabase database walks one sale from account to ledger as real API roles, passes 15 checks on a clean install, fails loudly when a rule is broken, and keeps nothing it wrote.
+- AC-6.11 The install script for the Lovable SQL editor applies as one piece and records every migration in Supabase's migration history. The dry-run script leaves the database as it was.
+
 Not provable with the current test engine, which has one connection: that two settlements, or two reservations, arriving at the same moment take turns. The locks are in the code. They need a test on a real Postgres with two connections.
 
 ## User acceptance testing

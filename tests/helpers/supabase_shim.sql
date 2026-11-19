@@ -11,7 +11,12 @@ create table if not exists auth.users (
   email_confirmed_at timestamptz default now(),
   phone_confirmed_at timestamptz,
   raw_user_meta_data jsonb not null default '{}'::jsonb,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  -- Columns the real table has and the smoke script fills in.
+  instance_id uuid,
+  aud text,
+  role text,
+  updated_at timestamptz
 );
 
 create or replace function auth.uid() returns uuid

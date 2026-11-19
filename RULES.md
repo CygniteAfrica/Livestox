@@ -23,6 +23,8 @@ Claude Code writes migrations, functions, tests and typed client helpers. Lovabl
 | `supabase/migrations/` | Schema and functions, one file per increment, named `YYYYMMDDHHMMSS_topic.sql` |
 | `tests/helpers/` | Test database setup and a stand-in for Supabase's `auth` schema and roles |
 | `tests/` | One test file per increment, plus the smoke test |
+| `tests/real/` | A smoke script run by hand in the SQL editor of a real Supabase project. It rolls itself back |
+| `scripts/` | `bundle_for_lovable.mjs` builds the install and dry-run scripts into `dist/` (not committed) |
 | `SPEC.md`, `RULES.md`, `STATUS.md` | What, how, and where things stand |
 
 ## Database conventions
