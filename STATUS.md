@@ -4,7 +4,7 @@ Updated 19 November 2026, end of the first build session.
 
 ## Where things stand
 
-The database core is built, reviewed and hardened on branch `build/database-core`: five increments, 92 automated tests, gate green. Nothing has been pushed to GitHub, nothing has been applied to a real Supabase project, and no screens exist in this repository yet.
+The database core is built, reviewed and hardened on branch `build/database-core`: five increments, 92 automated tests, gate green. Nothing has been applied to a real Supabase project, and no screens exist in this repository yet.
 
 | Increment | What it covers | Tests | State |
 |---|---|---|---|
@@ -15,7 +15,9 @@ The database core is built, reviewed and hardened on branch `build/database-core
 | 4 | Listings, reservations, payment confirmation, ledger | 19 | Green |
 | 5 | Hardening after the independent review | 27 | Green |
 
-Run the gate with `./gate.sh` from the repository root. It prints `GATE: GREEN` or `GATE: RED`.
+Run the gate with `./gate.sh` from the repository root. It prints `GATE: GREEN` or `GATE: RED`. GitHub runs the same gate on every pull request and on `main`.
+
+The branch is pushed and open as pull request 1 into `main` on `CygniteAfrica/Livestox`. It is not merged.
 
 ## How the tests were checked
 

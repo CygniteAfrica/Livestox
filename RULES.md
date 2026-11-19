@@ -39,7 +39,7 @@ Claude Code writes migrations, functions, tests and typed client helpers. Lovabl
 
 ## The gate
 
-`npm run gate` (or `./gate.sh`) runs the unit, smoke and regression tests and prints GATE: GREEN or GATE: RED. It must pass before every commit that is pushed. A red gate blocks the push.
+`npm run gate` (or `./gate.sh`) runs the unit, smoke and regression tests and prints GATE: GREEN or GATE: RED. It must pass before every commit that is pushed. A red gate blocks the push. GitHub runs the same script on every pull request and on `main` (`.github/workflows/gate.yml`), so a pull request with a red gate must not be merged.
 
 | Part | What it proves |
 |---|---|
