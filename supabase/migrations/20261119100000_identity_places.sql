@@ -393,7 +393,7 @@ grant select on public.place_access to authenticated;
 grant all on all tables in schema public to service_role;
 
 -- A party's KYC status and type are never changed from the browser.
-revoke execute on function public.handle_new_user() from public;
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Seed: the Ethiopia country layer from the SSA workbook (C001, C002).
