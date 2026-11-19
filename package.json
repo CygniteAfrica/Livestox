@@ -1,0 +1,16 @@
+{
+  "name": "livestox",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "LiveStox: livestock records and lot ownership. Database core and tests.",
+  "scripts": {
+    "test": "node ./node_modules/vitest/vitest.mjs run",
+    "test:smoke": "node ./node_modules/vitest/vitest.mjs run tests/00_smoke.test.ts",
+    "gate": "node ./node_modules/vitest/vitest.mjs run --reporter=verbose"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.3.0",
+    "vitest": "^3.0.0"
+  }
+}
