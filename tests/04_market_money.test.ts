@@ -267,7 +267,14 @@ describe('increment 4: listings, reservations, payment and ledger', () => {
     const t = await trade(id);
     expect([t.status, t.refund_due]).toEqual(['lapsed', true]);
     expect((await db.query<{ refund_due: boolean }>(`select refund_due from payment where subject_id = $1`, [id])).rows[0].refund_due).toBe(true);
-    expect((await db.query(`select 1 from ledger_entry where subject_id = $1`, [id])).rows.length).toBe(0);
+    // The late money is in the ledger as owed back to the buyer, not to the seller.
+    const owed = await db.query<{ direction: string; account_type: string; party_id: string | null }>(
+      `select e.direction, a.account_type, a.party_id from ledger_entry e join ledger_account a on a.id = e.account_id
+       where e.subject_id = $1 order by e.id`, [id]);
+    expect(owed.rows).toEqual([
+      { direction: 'debit', account_type: 'external', party_id: null },
+      { direction: 'credit', account_type: 'payable', party_id: buyerParty },
+    ]);
   });
 
   it('AC-4.8 a payment after the deadline is refused even if the expiry job has not run yet', async () => {

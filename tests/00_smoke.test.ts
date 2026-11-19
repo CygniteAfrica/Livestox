@@ -15,7 +15,7 @@ describe('smoke', () => {
 
   it('the test database enforces roles, so access tests mean something', async () => {
     const db = await freshDb();
-    await db.exec(`create table public._probe (id int); alter table public._probe enable row level security; grant select on public._probe to authenticated; insert into public._probe values (1);`);
+    await db.exec(`create table public._probe (id int); alter table public._probe enable row level security; revoke all on public._probe from anon, authenticated; grant select on public._probe to authenticated; insert into public._probe values (1);`);
     const rows = await as(db, null, async () => (await db.query(`select * from public._probe`)).rows);
     expect(rows.length).toBe(0);
     const who = await as(db, null, async () => (await db.query<{ u: string }>(`select current_user as u`)).rows[0].u);

@@ -1,6 +1,6 @@
 # LiveStox: build spec
 
-Version 0.1, 19 November 2026. Owner: Charles Simba.
+Version 0.2, 19 November 2026. Owner: Charles Simba.
 
 ## What we are building and why
 
@@ -74,6 +74,27 @@ Every criterion below is checked by an automated test whose name starts with its
 - AC-4.11 A holder can resell units through a secondary listing, and the proceeds are credited to that holder.
 - AC-4.12 Payment and ledger rows can never be updated or deleted.
 - AC-4.13 Reservations can never take a listing's units remaining below zero.
+
+### Increment 5: hardening after independent review
+
+An independent review of increments 1 to 4 found defects. Each criterion below closes one.
+
+- AC-5.1 Starting from Supabase's most permissive default grants, signed-in users and visitors end up holding exactly the listed table privileges, and may run exactly the listed functions. Visitors may run none.
+- AC-5.2 KYC status, party type and verifier status cannot be changed by the party itself, whatever the grants.
+- AC-5.3 A verified party that changes its name or ID number returns to pending, and the change is audited. Only an owner of a verified party can buy through it.
+- AC-5.4 A farm cannot be moved to another keeper.
+- AC-5.5 A lot stops being verified when its animals change or a newer count is recorded, until it is counted and checked again. Once outsiders hold or are buying units, the keeper cannot take animals out. Membership dates cannot rewrite history.
+- AC-5.6 Only an admin, or a vet practice an admin has approved, can verify a count.
+- AC-5.7 A correction must be the same kind of entry and made by the keeper or the original recorder. Voiding a correction restores the entry it corrected. A vet whose access has ended cannot void.
+- AC-5.8 Payment notices are matched on transaction and outcome together. A success after an abandoned notice is recorded and refunded. A reversal after settlement is flagged for review. A notice with a missing or malformed currency or outcome never settles a trade.
+- AC-5.9 Only a confirmed email or phone can accept an invite, phone invites match however the number is stored, and a caller with no account matches nothing.
+- AC-5.10 Other parties' positions cannot be read through helper functions.
+- AC-5.11 A lot can be formed only under a legal entity an admin has linked to the keeper. An animal cannot be recorded as owned by a party the caller does not belong to.
+- AC-5.12 The date an animal leaves a lot is the date at the farm, not the date in UTC.
+- AC-5.13 The last units of a listing can be bought even when below the minimum.
+- AC-5.14 History tables cannot be emptied, trades cannot be deleted, and the balance checks hold for a role that cannot see the rows.
+
+Not provable with the current test engine, which has one connection: that two settlements, or two reservations, arriving at the same moment take turns. The locks are in the code. They need a test on a real Postgres with two connections.
 
 ## User acceptance testing
 

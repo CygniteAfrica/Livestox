@@ -130,12 +130,12 @@ describe('increment 2: animals, IDs, diary and tasks', () => {
       p_animal_id: cow, p_event_kind: 'weight', p_occurred_at: '2026-03-01T08:00:00Z', p_weight_kg: 1, p_supersedes_event_id: w2,
     }))).toMatch(/EVENT_NOT_CURRENT/);
 
-    // Voiding the correction falls back to the next latest valid weight (February).
+    // Voiding the correction restores the entry it corrected (March, 321.5).
     await rpc(db, farmer, 'void_event', { p_event_id: w3, p_reason: 'scale was faulty' });
-    expect(Number((await animalRow(cow)).current_weight_kg)).toBe(300);
+    expect(Number((await animalRow(cow)).current_weight_kg)).toBe(321.5);
     expect(await errorOf(rpc(db, farmer, 'void_event', { p_event_id: w3, p_reason: 'again' }))).toMatch(/EVENT_ALREADY_VOID/);
 
-    // All five weight rows are still in the table.
+    // All four weight rows are still in the table.
     const all = await db.query<{ n: number }>(`select count(*)::int as n from animal_event where animal_id = $1 and event_kind = 'weight'`, [cow]);
     expect(all.rows[0].n).toBe(4);
     expect(w1).toBeTruthy();

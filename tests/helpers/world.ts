@@ -37,6 +37,7 @@ export async function buildWorld(db: Db): Promise<World> {
     p_place_id: farm, p_contact: 'vet@example.test', p_access_role: 'vet',
   });
   await rpc(db, vet, 'respond_place_invite', { p_access_id: access, p_accept: true, p_party_id: vetParty });
+  await rpc(db, admin, 'admin_set_verifier', { p_party_id: vetParty, p_approved: true });
 
   const stranger = await newUser(db, 'stranger@example.test');
 
@@ -45,6 +46,8 @@ export async function buildWorld(db: Db): Promise<World> {
      values ('Hill Herd Trust', 'trust', 'ET', 'sandbox', $1) returning id`, [adminParty]))[0].id;
   const unit = (await rowsAs<{ id: string }>(db, admin,
     `insert into unit_definition (definition, price_source) values ('1 unit is one ten-thousandth of the lot', 'Listed price') returning id`))[0].id;
+
+  await rpc(db, admin, 'admin_link_legal_entity', { p_legal_entity_id: legalEntity, p_keeper_party_id: farmParty });
 
   return { admin, adminParty, farmer, farmParty, farm, vet, vetParty, stranger, legalEntity, unit };
 }
