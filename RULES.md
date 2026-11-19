@@ -39,7 +39,7 @@ Claude Code writes migrations, functions, tests and typed client helpers. Lovabl
 
 ## The gate
 
-`npm run gate` runs the unit, smoke and regression tests. It must pass before every commit that is pushed. A red gate blocks the push.
+`npm run gate` (or `./gate.sh`) runs the unit, smoke and regression tests and prints GATE: GREEN or GATE: RED. It must pass before every commit that is pushed. A red gate blocks the push.
 
 | Part | What it proves |
 |---|---|
