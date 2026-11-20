@@ -119,6 +119,15 @@ The screens are being built for Kenya first, priced in Kenya shillings. Ethiopia
 - AC-7.3 A farm can be created only in an open country, and cannot be moved to a closed one.
 - AC-7.4 Only an admin can open or close a country, and the change takes effect at once.
 
+### Increment 8: an invited person can see who is inviting them
+
+Found by the review of the first screens: the inbox could only say 'Join a team', because an invited person may not read the party or the farm until they accept.
+
+- AC-8.1 The invited person sees the party, the farm, the role offered and who sent the invitation.
+- AC-8.2 Nobody else sees an invitation, and seeing one opens no other door: the invited person still cannot read the party or the farm.
+- AC-8.3 An account whose email is not confirmed sees nothing.
+- AC-8.4 An invitation leaves the list once it is accepted, declined or withdrawn.
+
 Not provable with the current test engine, which has one connection: that two settlements, or two reservations, arriving at the same moment take turns. The locks are in the code. They need a test on a real Postgres with two connections.
 
 ## User acceptance testing

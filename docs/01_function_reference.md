@@ -28,6 +28,7 @@ A person always acts through a party. After sign-up, call `create_party` once, t
 | `respond_place_invite(p_access_id, p_accept, p_party_id)` | The invited person | Accepts through their own party, or declines | `INVITE_NOT_OPEN`, `INVITE_NOT_YOURS`, `PARTY_REQUIRED` |
 | `revoke_place_access(p_access_id)` | Keeper owner or manager | Ends a vet's or worker's access | `NOT_KEEPER`, `ACCESS_NOT_OPEN` |
 | `leave_place(p_access_id)` | The vet or worker | Leaves the farm | `ACCESS_NOT_ACTIVE`, `NOT_YOUR_ACCESS` |
+| `my_invitations()` | Any signed-in user | Lists the caller's own open invitations. Each row has `invitation_kind` (`party` or `place`), `invitation_id` (pass it to `accept_party_invite` or `respond_place_invite`), `offered_role`, `party_name`, `place_name` (empty for a party invitation), `invited_by_name` and `invited_at`. Use this for the inbox: an invited person cannot read the party or the farm directly | none |
 
 Invites addressed to the signed-in user appear in `party_member` and `place_access` with status `invited`.
 

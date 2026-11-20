@@ -94,7 +94,7 @@ describe('increment 5: hardening', () => {
       'accept_party_invite', 'add_lot_member', 'admin_link_legal_entity', 'admin_set_country_open', 'admin_set_kyc_status', 'admin_set_verifier',
       'can_read_animal', 'can_read_lot', 'cancel_listing', 'cancel_trade', 'close_task', 'create_listing', 'create_party',
       'form_lot', 'has_place_access', 'invite_party_member', 'invite_to_place', 'is_admin', 'is_party_member',
-      'is_place_keeper', 'leave_place', 'lot_members_on', 'lot_verified', 'my_contacts', 'next_public_id',
+      'is_place_keeper', 'leave_place', 'lot_members_on', 'lot_verified', 'my_contacts', 'my_invitations', 'next_public_id',
       'public_id_is_valid', 'record_census', 'record_event', 'record_verification', 'register_animal', 'register_newborn',
       'remove_lot_member', 'remove_party_member', 'reserve_units', 'respond_place_invite', 'retag_animal',
       'review_listing', 'revoke_place_access', 'update_animal', 'void_event',

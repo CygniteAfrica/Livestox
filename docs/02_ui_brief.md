@@ -1,6 +1,6 @@
 # LiveStox: UI brief for Lovable
 
-20 November 2026, version 2. Read with `01_function_reference.md`, which is the authority on what each function does and which error codes it returns.
+20 November 2026, version 3. Read with `01_function_reference.md`, which is the authority on what each function does and which error codes it returns.
 
 ## What changed underneath the screens
 
@@ -38,7 +38,7 @@ The new model, in one paragraph: a sign-in account has a `profile`. A person act
 |---|---|---|
 | Welcome | `party_member`, `party` | `create_party` |
 | Account | `profile`, `party`, `party_member` | Update `profile`; update `party` name, phone, national ID; `invite_party_member`, `remove_party_member` |
-| Inbox | Open rows in `place_access` and `party_member` addressed to me | `respond_place_invite`, `accept_party_invite` |
+| Inbox | `my_invitations()`, which names the party, the farm, the role and the sender | `respond_place_invite`, `accept_party_invite` |
 | Farms list and farm detail | `place`, `place_access` | Insert and update `place`; `invite_to_place`, `revoke_place_access`, `leave_place` |
 | Animals list | `animal`, with filters for farm and status | none |
 | Register an animal | `species`, `breed`, `place` | `register_animal` |
