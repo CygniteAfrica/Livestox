@@ -1,14 +1,21 @@
 # LiveStox: status
 
-Updated 19 November 2026, end of the second build session.
+Updated 20 November 2026, during the third build session.
 
 ## Where things stand
 
-The database core is built, reviewed and hardened on branch `build/database-core`: six increments, seven migrations, 106 automated tests, gate green.
+The database core is installed on the Lovable project's own database ('Livestox Connect', Postgres 17.6) and passes its smoke test there. The code is on branch `build/database-core`: seven increments, eight migrations, 119 automated tests, gate green.
 
-It has been dry-run on the Lovable project's own database ('Livestox Connect', Postgres 17.6): all seven migrations applied and a 15-check smoke test passed, inside one transaction that was then rolled back. A check afterwards showed the database exactly as before: 78 animals, 581 diary entries, 96 ownership rows, 7 accounts, no `legacy` schema.
+| Step on Lovable | State |
+|---|---|
+| Install of the first seven migrations | Done 20 November 2026. The prototype's 12 tables are in `legacy` with every row (78 animals, 581 diary entries, 96 ownership rows). The 7 accounts have core profiles with their names |
+| Smoke test on the installed database | Passed, 15 of 15, rolled back |
+| Migration history | Seven rows recorded, each holding its file character for character |
+| Files in the Lovable project | The seven migrations are in `supabase/migrations/`. The function reference, spec and rules are in `docs/core/`. All ten were checked by SHA-256 against this repository. Version 1 of the UI brief is there too, copied by Lovable and not checked |
+| Migration 8 (Kenya and open countries) | **Not applied.** Rehearsed on the Lovable database and passed. The real run was stopped by a safety check in Claude Code and needs Charles's go-ahead |
+| Screens | **Not started.** Lovable read the brief and stopped, as told to, because the country list held only Ethiopia. Migration 8 is the fix |
 
-**The real install has not been run.** A safety check in Claude Code stopped it before anything was sent. It needs Charles's go-ahead. No screens use the core yet.
+The published app at livestox.life still runs the old screens against tables that have moved, so its signed-in pages do not work. Nothing has been published.
 
 | Increment | What it covers | Tests | State |
 |---|---|---|---|
@@ -18,11 +25,12 @@ It has been dry-run on the Lovable project's own database ('Livestox Connect', P
 | 3 | Lots of any size, memberships, census, verification, ranks, stakes | 13 | Green |
 | 4 | Listings, reservations, payment confirmation, ledger | 19 | Green |
 | 5 | Hardening after the independent review | 27 | Green |
-| 6 | Installing beside the Lovable prototype: move its tables aside, carry accounts over, smoke script, install script | 14 | Green |
+| 6 | Installing beside the Lovable prototype: move its tables aside, carry accounts over, smoke script, install script | 23 | Green |
+| 7 | Kenya, and which countries the app offers | 4 | Green |
 
 Run the gate with `./gate.sh` from the repository root. It prints `GATE: GREEN` or `GATE: RED`. GitHub runs the same gate on every pull request and on `main`.
 
-The branch is open as pull request 1 into `main` on `CygniteAfrica/Livestox`. It is not merged. Increment 6 is committed on this machine and not yet pushed.
+The branch is open as pull request 1 into `main` on `CygniteAfrica/Livestox`. It is not merged. Increments 6 and 7 are committed on this machine and not yet pushed.
 
 ## Installing on Lovable
 
@@ -87,13 +95,13 @@ To undo an install: restore the 18:46 UTC backup from Cloud, Database, Manage, B
 
 ## What is next
 
-In order. Items 1 and 5 need Charles.
+In order. Item 1 needs Charles.
 
-1. Run the real install on the Lovable database: `dist/install.sql` in Lovable's SQL editor. Then run `tests/real/smoke_on_supabase.sql` there to confirm 15 of 15 on the installed database.
-2. Add the code files to the Lovable project with one Lovable prompt: the seven migrations under `supabase/migrations/`, and `docs/01_function_reference.md`. Check each file against this repository afterwards.
-3. Have Lovable rebuild the screens on the functions in `docs/01_function_reference.md`, journey by journey, starting with sign-up, party, farm and animal records.
-4. Run UAT in Chrome against the Lovable preview, scripted from `SPEC.md`. Publish only on Charles's say-so.
-5. Decide launch country and currency (plan decision D2), so the right country row, district list and Paystack currency are seeded.
+1. Apply migration 8 on the Lovable database: `node scripts/bundle_for_lovable.mjs --from 20261120090000`, then `dist/update.sql` in Lovable's SQL editor. It adds Kenya with shillings, hides Ethiopia from the country list, and refuses farms in a closed country. This settles plan decision D2 as Kenya first unless Charles says otherwise.
+2. Give Lovable migration 8, the updated function reference and version 2 of the UI brief, and ask it to resume slice 1 (accounts, farms, animals, diary, tasks). Then slices 2 to 4 in `docs/02_ui_brief.md`.
+3. Run UAT in Chrome against the Lovable preview, scripted from `SPEC.md`. Publish only on Charles's say-so.
+4. Decide what the `sandbox_exec` role should be allowed to do (open issue 14).
+5. Seed breeds, diseases, vaccines and medicines. All four lists are empty on Lovable. The fields are optional, so this does not block the screens.
 6. A second gate on real Postgres in Docker with two connections, to prove the settlement and reservation locks.
 7. Increment 7: seed breeds, diseases and vaccines from the SSA workbook.
 8. Increment 8: the Paystack webhook as a Supabase edge function that calls `confirm_payment`, plus the scheduled call to `expire_trades`.
@@ -125,9 +133,13 @@ Known before the review:
 
 Found in the second session:
 
-14. The Lovable database has a role called `sandbox_exec` that is granted read and insert on every new table by default. It looks like Lovable's own tooling role, not something app users can use. The hardening migration does not touch it. Worth asking Lovable what it is.
+14. The Lovable database has a role called `sandbox_exec`. It can log in, bypasses row level security, and by default gets read and insert on every new table and execute on every new function, the core's included. The second review showed that whoever acts as this role can call the admin functions. It looks like the role Lovable's own agent uses, so revoking its rights may break Lovable's tooling. Not changed. Charles to decide.
 15. A lot counts as verified only if its count was recorded after the last animal joined or left. The join time is the wall clock; the count time is the start of its transaction. In the app each step is its own transaction, so the order is right. A script that does both in one transaction sees the lot as unverified. The smoke script sets the join time back to work around this, and says so.
-16. The two prototype admins become admins of the core at install. Nobody chose them again; they are carried over.
+16. The two prototype admins became admins of the core at install: the accounts named 'Cygnite Africa' and 'Charles Simba', both with a confirmed email. Nobody chose them again. They were carried over.
+17. Lovable's security scanner reports one critical finding: ten tables whose read rule lets everyone through. Seven are reference lists that visitors are meant to read (countries, districts, species, breeds, diseases, vaccines, medicines). Three are meant to be read by every signed-in user (`legal_entity`, `platform_setting`, `unit_definition`). This is by design. Do not press 'Fix all'. Mark the finding as intended.
+18. In the file-copy message Lovable did three things it was not asked to do: it updated three TanStack packages, added a compatibility layer in `src/lib/prototype/` with a note in `AGENTS.md` so the old screens still compile, and adjusted two error components. The UI prompt tells it to delete the compatibility layer once slice 1 is built.
+19. From the second review, left as they are because the migration is already applied: the account carry-over is not safe to run twice by hand, it trusts any schema named `legacy`, and it trims only spaces from names. None of these can be reached through the install script.
+20. The smoke script advances two sequences each time it runs (about 16 public IDs and 21 audit log numbers). It leaves no rows.
 
 ## Choices made that Charles should confirm
 
@@ -139,6 +151,7 @@ Found in the second session:
 6. Once outsiders hold or are buying units, the keeper cannot remove animals from the lot. Deaths and sales still end membership. Planned sell-downs wait for the destock decision in phase 4.
 7. Reservation length (15 minutes) and platform fee (2%) come from the May purchase spec. Both are rows in `platform_setting`.
 8. `form_lot` takes total units and keeper units as inputs, so plan decision D9 can go either way without a code change.
+9. Kenya and Kenya shillings first (migration 8, not yet applied). Reasons: the master rules say KES by default, and Lovable holds an earlier instruction from Charles not to mention Ethiopia in the app. Ethiopia stays in the database, closed. An admin can open it with one function call.
 
 ## Process notes
 
@@ -147,3 +160,5 @@ Found in the second session:
 3. Commits use the GitHub no-reply address of the `CygniteAfrica` account, set for this repository only.
 4. Lovable's SQL editor asks for confirmation when a script contains the word DELETE. The migrations do, inside function and policy definitions. The dry run was confirmed on that basis.
 5. Everything run against the Lovable database in the second session was either read-only or rolled back. The one script that would have changed it, the install, was stopped before it was sent.
+6. Third session: Charles approved the install and it ran. An independent review of increment 6 reported after the install had started. It found no critical defect. Its points on the smoke script were fixed (ten broken-rule cases now fail it) and the rest are in the open issues above.
+7. Lovable's file-copy message cost 4.9 credits. The slice 1 message that stopped at the blocker also cost credits. The amount was not read.
