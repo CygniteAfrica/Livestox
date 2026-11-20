@@ -128,6 +128,15 @@ Found by the review of the first screens: the inbox could only say 'Join a team'
 - AC-8.3 An account whose email is not confirmed sees nothing.
 - AC-8.4 An invitation leaves the list once it is accepted, declined or withdrawn.
 
+### Increment 9: a farm's own tag numbers belong to that farm
+
+Found by the review of the first screens: a live tag had to be unique across the whole platform, so the second keeper to tag an animal '001' was refused. This narrows AC-2.10 for a keeper's own numbering and keeps it as it was for official schemes.
+
+- AC-9.1 Two keepers can each use the same number in their own tagging.
+- AC-9.2 One keeper cannot put the same number on two animals at once. A retired number is free again.
+- AC-9.3 A number in an official scheme is still unique across every keeper.
+- AC-9.4 The keeper recorded on a tag cannot be set by hand and follows the animal.
+
 Not provable with the current test engine, which has one connection: that two settlements, or two reservations, arriving at the same moment take turns. The locks are in the code. They need a test on a real Postgres with two connections.
 
 ## User acceptance testing

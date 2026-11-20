@@ -1,6 +1,6 @@
 # LiveStox: UI brief for Lovable
 
-20 November 2026, version 3. Read with `01_function_reference.md`, which is the authority on what each function does and which error codes it returns.
+20 November 2026, version 4. Read with `01_function_reference.md`, which is the authority on what each function does and which error codes it returns.
 
 ## What changed underneath the screens
 
@@ -50,6 +50,7 @@ Notes for slice 1:
 
 1. The diary is append-only. To correct an entry, call `record_event` with `p_supersedes_event_id`. To cancel one, call `void_event`. There is no edit or delete.
 2. Sex is one of four values and birth date is required, with a basis. There is no 'Not sure yet'.
+5. Tags: when registering an animal, send the tag value and no scheme, so the database files it under the keeper's own numbering. Never send a made-up scheme such as `farm`. On the tags tab, call the keeper's own numbering 'Farm tag' and send `life.livestox.local` for it. Treat any other scheme as an official number.
 3. Remove the offers, counter-offer and watchlist screens and components. The core has no tables for them.
 4. The admin KYC screen moves to slice 4. Until then, remove its old code.
 
