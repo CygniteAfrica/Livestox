@@ -20,7 +20,7 @@ The database core is installed on the Lovable project's own database ('Livestox 
 | Screens, slice 2 (lots, counts, checks) | Built. **Not reviewed and not tested signed in** |
 | Screens, slice 3 (market, portfolio, trade page) | Built. **Not reviewed and not tested signed in.** Payment is not connected, by design, so no trade can settle from a screen |
 | Second round of review fixes | Done by Lovable: all 11 points, 40 of its own tests passing. Not tested signed in |
-| Review of slices 2 and 3 | Started 20 November 2026. Result not in when this was written |
+| Review of slices 2 and 3 | Done. No critical fault. Every database call matches. Fifteen points sent to Lovable on 20 November 2026 |
 
 The published app at livestox.life still runs the old screens against tables that have moved, so its signed-in pages do not work. Nothing has been published.
 
@@ -102,6 +102,29 @@ It listed these gaps in the database, none fixed yet:
 7. A diary entry accepts any place, including another keeper's farm.
 8. Any party type can be approved as a verifier or linked to a legal entity.
 9. No audit trail on settings, legal entities or the open switch on countries.
+
+## Third review: lots, counts, checks, market and portfolio
+
+The review confirmed the snooze and dismiss fix and that registering an animal sends no tag scheme. For slices 2 and 3 it found all eleven functions reachable from a screen with correct parameters, no direct writes to protected tables, nothing that marks a trade paid or a lot verified in the browser, and no pay button.
+
+The two most serious points, both sent to Lovable:
+
+1. A form said 'Saved.' when the database had refused, in the two places where a refusal is shown as a waiting step (no legal entity linked, buyer not verified).
+2. The listing form refused an unverified lot and a minimum above the units offered. The database has neither rule at that point, so both were rules that lived only in the browser.
+
+Also sent: which count is 'latest' (the screens ordered by date, the database by when it was recorded), no reason shown when a lot is not verified, a trade page that printed raw codes and showed the deadline in UTC, a typed settlement currency, a KYC step the buyer cannot complete, and limits (keeper minimum, fee, per-buyer cap) not shown before people hit them.
+
+Lovable's own result files say its checks for these slices ran against intercepted responses, not real rows. So until the signed-in test, none of these screens has been exercised against the database.
+
+Gaps this review found in the database, none fixed yet:
+
+1. A keeper cannot read the name of a verifier or a unit holder, and a buyer or vet cannot read the keeper's name. Screens say 'details not available'.
+2. A buyer cannot read the farm of a lot on sale, so farm name and country show as not available.
+3. A party cannot ask to be verified. KYC status starts as 'not required' and only an admin can change it.
+4. Nothing runs `expire_trades`. An unpaid reservation stays open past its deadline and keeps its units locked until the buyer cancels. This is part of the planned Paystack increment.
+5. A count dated 'today' is refused between midnight and 03:00 in East Africa (already open issue 7).
+6. A buyer whose reservation lapsed or was cancelled can no longer read the listing or the lot.
+7. `free_units` is not open to signed-in users, so the listing form cannot show how many units are free to list.
 
 ## How the tests were checked
 
