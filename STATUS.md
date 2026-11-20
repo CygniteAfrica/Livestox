@@ -11,9 +11,10 @@ The database core is installed on the Lovable project's own database ('Livestox 
 | Install of the first seven migrations | Done 20 November 2026. The prototype's 12 tables are in `legacy` with every row (78 animals, 581 diary entries, 96 ownership rows). The 7 accounts have core profiles with their names |
 | Smoke test on the installed database | Passed, 15 of 15, rolled back |
 | Migration history | Seven rows recorded, each holding its file character for character |
-| Files in the Lovable project | The seven migrations are in `supabase/migrations/`. The function reference, spec and rules are in `docs/core/`. All ten were checked by SHA-256 against this repository. Version 1 of the UI brief is there too, copied by Lovable and not checked |
-| Migration 8 (Kenya and open countries) | **Not applied.** Rehearsed on the Lovable database and passed. The real run was stopped by a safety check in Claude Code and needs Charles's go-ahead |
-| Screens | **Not started.** Lovable read the brief and stopped, as told to, because the country list held only Ethiopia. Migration 8 is the fix |
+| Files in the Lovable project | The eight migrations are in `supabase/migrations/`. The function reference, spec, rules and UI brief are in `docs/core/`. All twelve files checked by SHA-256 against this repository |
+| Migration 8 (Kenya and open countries) | Applied 20 November 2026 with Charles's go-ahead ('Yes, Kenya first'). Kenya is open with shillings. Ethiopia is closed. Smoke test passed 15 of 15 afterwards |
+| Screens, slice 1 | Built by Lovable: accounts, welcome, inbox, farms, animals, diary, tasks, vet home. The build passes and the sign-in guard works. **Not tested signed in**: no data has been saved through the new screens by anyone |
+| Screens, slices 2 to 4 | Not started. Lots, marketplace, listings, portfolio and admin show a 'Being rebuilt' page |
 
 The published app at livestox.life still runs the old screens against tables that have moved, so its signed-in pages do not work. Nothing has been published.
 
@@ -97,9 +98,9 @@ To undo an install: restore the 18:46 UTC backup from Cloud, Database, Manage, B
 
 In order. Item 1 needs Charles.
 
-1. Apply migration 8 on the Lovable database: `node scripts/bundle_for_lovable.mjs --from 20261120090000`, then `dist/update.sql` in Lovable's SQL editor. It adds Kenya with shillings, hides Ethiopia from the country list, and refuses farms in a closed country. This settles plan decision D2 as Kenya first unless Charles says otherwise.
-2. Give Lovable migration 8, the updated function reference and version 2 of the UI brief, and ask it to resume slice 1 (accounts, farms, animals, diary, tasks). Then slices 2 to 4 in `docs/02_ui_brief.md`.
-3. Run UAT in Chrome against the Lovable preview, scripted from `SPEC.md`. Publish only on Charles's say-so.
+1. Signed-in UAT of slice 1 with `docs/03_uat_slice_1.md`. It needs three test accounts on the preview. Lovable offered to create a temporary test user and was told no, because creating accounts is Charles's call.
+2. Slices 2 to 4 with Lovable, one message each, as set out in `docs/02_ui_brief.md`. Review each against the function reference before the next.
+3. Publish only on Charles's say-so.
 4. Decide what the `sandbox_exec` role should be allowed to do (open issue 14).
 5. Seed breeds, diseases, vaccines and medicines. All four lists are empty on Lovable. The fields are optional, so this does not block the screens.
 6. A second gate on real Postgres in Docker with two connections, to prove the settlement and reservation locks.
@@ -151,7 +152,7 @@ Found in the second session:
 6. Once outsiders hold or are buying units, the keeper cannot remove animals from the lot. Deaths and sales still end membership. Planned sell-downs wait for the destock decision in phase 4.
 7. Reservation length (15 minutes) and platform fee (2%) come from the May purchase spec. Both are rows in `platform_setting`.
 8. `form_lot` takes total units and keeper units as inputs, so plan decision D9 can go either way without a code change.
-9. Kenya and Kenya shillings first (migration 8, not yet applied). Reasons: the master rules say KES by default, and Lovable holds an earlier instruction from Charles not to mention Ethiopia in the app. Ethiopia stays in the database, closed. An admin can open it with one function call.
+9. Kenya and Kenya shillings first (migration 8). Confirmed by Charles on 20 November 2026. Reasons at the time: the master rules say KES by default, and Lovable holds an earlier instruction from Charles not to mention Ethiopia in the app. Ethiopia stays in the database, closed. An admin can open it with one function call.
 
 ## Process notes
 
