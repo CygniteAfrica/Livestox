@@ -15,12 +15,11 @@ The database core is installed on the Lovable project's own database ('Livestox 
 | Migration 8 (Kenya and open countries) | Applied 20 November 2026 with Charles's go-ahead ('Yes, Kenya first'). Kenya is open with shillings. Ethiopia is closed. Smoke test passed 15 of 15 afterwards |
 | Migration 9 (`my_invitations`) | Applied 20 November 2026 with Charles's go-ahead. Smoke test passed 15 of 15 afterwards. The inbox now names the party, the farm, the role and the sender |
 | Migration 10 (tag scope) | Applied 20 November 2026 with Charles's go-ahead. Smoke test passed 15 of 15 afterwards. The file, the function reference, version 4 of the UI brief, the spec and the second UAT script are in the Lovable project, checked by SHA-256 |
-| Screens, slice 1 | Built and tested signed in: all 20 steps of `docs/03_uat_slice_1.md` passed after four front-end fixes, and the saved rows were checked in the database. A first round of review fixes went in afterwards and has not been tested signed in |
-| Screens, slice 4 (admin) | Built: admin home, parties and KYC, legal entities, listing review, settings. An independent review found every call, write and read matching the database. **Not tested signed in** |
-| Screens, slice 2 (lots, counts, checks) | Built. **Not reviewed and not tested signed in** |
-| Screens, slice 3 (market, portfolio, trade page) | Built. **Not reviewed and not tested signed in.** Payment is not connected, by design, so no trade can settle from a screen |
-| Second round of review fixes | Done by Lovable: all 11 points, 40 of its own tests passing. Not tested signed in |
-| Review of slices 2 and 3 | Done. No critical fault. Every database call matches. Fifteen points sent to Lovable on 20 November 2026 |
+| Screens, slice 1 (accounts, farms, animals, diary, tasks, vet) | Built, reviewed twice, tested signed in: 20 of 20 steps. Two rounds of review fixes went in after that test and have not been retested signed in |
+| Screens, slice 4 (admin) | Built, reviewed, tested signed in: 9 of 9 steps |
+| Screens, slice 2 (lots, counts, checks) | Built, reviewed, tested signed in: 11 of 11 steps |
+| Screens, slice 3 (market, portfolio, trade page) | Built, reviewed, tested signed in: 11 of 11 steps, as far as reserve and cancel. Payment is not connected, by design, so no trade can settle from a screen |
+| Review fixes | Three rounds sent to Lovable and done: 8 points, then 11, then 11 |
 
 The published app at livestox.life still runs the old screens against tables that have moved, so its signed-in pages do not work. Nothing has been published.
 
@@ -126,6 +125,31 @@ Gaps this review found in the database, none fixed yet:
 6. A buyer whose reservation lapsed or was cancelled can no longer read the listing or the lot.
 7. `free_units` is not open to signed-in users, so the listing form cannot show how many units are free to list.
 
+## Signed-in test of the admin, lots and market screens
+
+Run by Lovable on 20 November 2026 with five temporary accounts (admin, keeper, vet, buyer, stranger), which Charles approved, following `docs/04_uat_slices_2_to_4.md`. All 31 steps passed with real saves and no front-end fix was needed during the run. Lovable's full results are in its project at `docs/core/04_uat_slices_2_to_4_results.md`.
+
+Nothing in the app can make an admin, so one test account was given the admin role by hand with `tests/real/uat_admin_grant.sql`, on Charles's instruction ('Make a test admin'). The role was taken away after the run with `tests/real/uat_admin_revoke.sql`. The database then showed two admins, neither a test account.
+
+What the database showed afterwards, read directly:
+
+| Item | Found |
+|---|---|
+| Lot | One, public ID LSX000003XT, verified, four animals |
+| Unit classes | Keeper first-loss 5,100 issued and 5,100 held. Senior 4,900 issued and 4,900 held |
+| Counts and checks | Two counts, two passing checks |
+| Listings | Two, both cancelled, each with all 4,000 units back |
+| Reservations | Two, both cancelled. 100 units at KES 5.00: KES 500, fee KES 10, total KES 510 |
+| Payments and ledger entries | None |
+| Countries | Kenya open, Ethiopia closed |
+
+The database refused what it should: a keeper share below the minimum (`KEEPER_MIN_NOT_MET`), an animal already in a lot (`ANIMAL_IN_ANOTHER_LOT`), listing more units than are free (`INSUFFICIENT_UNITS`), and removing an animal while a buyer had a reservation open (`LOT_HAS_OUTSIDE_HOLDERS`).
+
+Two things went wrong during the run and were put right:
+
+1. Lovable's first admin test account vanished. It had stopped to ask a question, and its temporary accounts are removed whenever it stops. The grant script refused to act, as it is built to when it cannot find exactly one new account. Lovable was told to keep its turn open and wait, and the second attempt worked.
+2. A 'Fix 1 selected security issue' message appeared in Lovable's queue and the Publish panel opened. Neither was intended. One of the approval clicks most likely landed on the 'Fix all' banner, which sits where the approval card had been. The queue was paused, the message removed before it ran, and the panel closed. Nothing was published and no security fix ran. The banner was then dismissed.
+
 ## How the tests were checked
 
 1. An independent reviewer read all four migrations as a hostile signed-in user and proved its findings with probes against the same engine. It reported 17 findings: 1 critical, 3 high, 7 medium, 6 low.
@@ -164,13 +188,13 @@ Gaps this review found in the database, none fixed yet:
 
 ## What is next
 
-In order. Items 2 to 4 need Charles.
+In order. Items 1 to 3 need Charles.
 
-1. Read the review of slices 2 and 3 and send Lovable its fixes.
-2. Signed-in UAT of slices 2 to 4 with `docs/04_uat_slices_2_to_4.md`. It needs a real admin. Lovable's temporary test users cannot be admins, because nothing but the database can make one. Either Charles signs in as an admin on the preview, or one test account is made an admin by hand for the run.
-3. Decide what to do with the UAT records left on the live database (open issue 21).
-4. Decide the wording of the public pages (open issue 22).
-5. Publish only on Charles's say-so.
+1. Decide what to do with the UAT records on the live database (open issue 21).
+2. Decide the wording of the public pages (open issue 22).
+3. Say when to publish. The new screens are in Lovable's preview only. livestox.life still serves the old build, whose signed-in pages do not work.
+4. Retest slice 1 signed in, since two rounds of fixes went in after its test.
+5. The Paystack webhook and the scheduled call to `expire_trades`, so a reservation can be paid or lapse.
 6. A second gate on real Postgres in Docker with two connections, to prove the settlement and reservation locks.
 7. Increment 7: seed breeds, diseases and vaccines from the SSA workbook.
 8. Increment 8: the Paystack webhook as a Supabase edge function that calls `confirm_payment`, plus the scheduled call to `expire_trades`.
@@ -210,7 +234,7 @@ Found in the second session:
 19. From the second review, left as they are because the migration is already applied: the account carry-over is not safe to run twice by hand, it trusts any schema named `legacy`, and it trims only spaces from names. None of these can be reached through the install script.
 20. The smoke script advances two sequences each time it runs (about 16 public IDs and 21 audit log numbers). It leaves no rows.
 
-21. The slice 1 UAT left records on the live database: two accounts whose email starts `agent-test+`, the parties 'UAT keeper 20261120' and 'UAT vet practice 20261120', the farm 'UAT farm 20261120', one animal (LSX000001MH), six diary entries and three ended invitations. Lovable could not remove the accounts. The diary is built so that nobody can delete from it, so removing these rows means switching that protection off for a moment, by hand. Until then they are plainly labelled test data.
+21. Two UAT runs left records on the live database. Seven accounts whose email starts `agent-test+` (two from the first run, five from the second). Six parties, three farms, five animals, one lot with its counts, checks, ranks and stakes, two cancelled listings, two cancelled trades, one legal entity with a unit definition and a keeper link, and the diary entries from the first run. Lovable could not remove the accounts. One test buyer is KYC verified and one test vet practice is an approved verifier, so those two test accounts could still act on the platform. Diary entries, counts and checks are built so that nobody can delete them; removing these rows means switching that protection off for a moment, by hand.
 22. The public pages were left alone on purpose and now disagree with the app. They describe owning a percentage of one animal and making offers, show 'USD 1,840' and 'Currency: USD', and use em dashes throughout. Wording is Charles's call.
 23. Deleting an account that has created records fails (first seen in the first review, now seen for real with the test accounts). Account closure needs its own design.
 
