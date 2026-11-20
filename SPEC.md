@@ -110,6 +110,15 @@ The Lovable project's database already holds the prototype's tables and demo dat
 - AC-6.10 A smoke script for a real Supabase database walks one sale from account to ledger as real API roles, passes 15 checks on a clean install, fails loudly when a rule is broken, and keeps nothing it wrote.
 - AC-6.11 The install script for the Lovable SQL editor applies as one piece and records every migration in Supabase's migration history. The dry-run script leaves the database as it was.
 
+### Increment 7: Kenya, and which countries the app offers
+
+The screens are being built for Kenya first, priced in Kenya shillings. Ethiopia stays in the database, closed, until it is launched.
+
+- AC-7.1 Kenya is in the country list with shillings, Nairobi time and four administrative levels.
+- AC-7.2 Visitors and signed-in users see only open countries. An admin sees all.
+- AC-7.3 A farm can be created only in an open country, and cannot be moved to a closed one.
+- AC-7.4 Only an admin can open or close a country, and the change takes effect at once.
+
 Not provable with the current test engine, which has one connection: that two settlements, or two reservations, arriving at the same moment take turns. The locks are in the code. They need a test on a real Postgres with two connections.
 
 ## User acceptance testing

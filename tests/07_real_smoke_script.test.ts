@@ -9,7 +9,7 @@ const smokeSql = readFileSync(join(here, 'real', 'smoke_on_supabase.sql'), 'utf8
 
 /** Break one rule on a clean install, run the smoke script, and return what it says. */
 async function smokeAfter(breakIt: string): Promise<string | null> {
-  const db = await freshDb();
+  const db = await freshDb({ asInstalled: true });
   await db.exec(breakIt);
   const said = await errorOf(db.exec(smokeSql));
   await db.close();
@@ -35,7 +35,7 @@ describe('the smoke script for a real Supabase database', () => {
   });
 
   it('AC-6.10 passes on a database that held the prototype', async () => {
-    const db = await freshDb({ prototype: true });
+    const db = await freshDb({ prototype: true, asInstalled: true });
     expect(await errorOf(db.exec(smokeSql))).toMatch(/SMOKE PASSED: 15 of 15 checks/);
     await db.close();
   });

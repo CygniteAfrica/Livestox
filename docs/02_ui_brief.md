@@ -1,6 +1,6 @@
 # LiveStox: UI brief for Lovable
 
-20 November 2026. Read with `01_function_reference.md`, which is the authority on what each function does and which error codes it returns.
+20 November 2026, version 2. Read with `01_function_reference.md`, which is the authority on what each function does and which error codes it returns.
 
 ## What changed underneath the screens
 
@@ -18,9 +18,11 @@ The new model, in one paragraph: a sign-in account has a `profile`. A person act
 6. Money is whole numbers of minor units in a column ending `_minor`, beside a three-letter currency. Format it with one helper. Never assume dollars. Never add or multiply money as floating point.
 7. Show people the `public_id` of an animal, lot, stake or legal entity, never the uuid.
 8. Allowed values (party types, place types, sexes, event kinds, lot classes, count methods, check methods and outcomes) are the CHECK constraints in `supabase/migrations`. Read them there. Do not invent values.
-9. Wording: plain everyday English, sentence case, British spelling, no em dashes or en dashes anywhere.
-10. Keep the visual design, the site header and footer, the public pages, sign-in, sign-up and everything under `src/routes/lovable/email`. Public pages must not read live data: a visitor can read only the reference lists.
-11. The older planning files (`FITGAP.MD`, `INVESTOR.MD`, `FarmSide.MD`, `PAYMENTS.MD`, `docs/data_model_specification.md`, `docs/fractional_stake_purchase_paystack.md`) describe the old model. Where they disagree with `docs/core`, `docs/core` wins.
+9. Countries and currency come from the `country` table, never from the code. Offer only the rows the user can read; the database shows a user only the countries that are open. A farm's country decides the default currency for its lots. Do not name any country in fixed text.
+10. The breed, disease, vaccine and medicine lists may be empty. Those fields are optional everywhere. When a list is empty, leave the field out rather than show an empty picker.
+11. Wording: plain everyday English, sentence case, British spelling, no em dashes or en dashes anywhere.
+12. Keep the visual design, the site header and footer, the public pages, sign-in, sign-up and everything under `src/routes/lovable/email`. Public pages must not read live data: a visitor can read only the reference lists.
+13. The older planning files (`FITGAP.MD`, `INVESTOR.MD`, `FarmSide.MD`, `PAYMENTS.MD`, `docs/data_model_specification.md`, `docs/fractional_stake_purchase_paystack.md`) describe the old model. Where they disagree with `docs/core`, `docs/core` wins.
 
 ## Shared pieces
 
@@ -85,7 +87,7 @@ Notes for slice 3:
 | Parties and KYC | `party` | `admin_set_kyc_status`, `admin_set_verifier` |
 | Legal entities and units | `legal_entity`, `unit_definition`, `legal_entity_keeper` | Insert and update `legal_entity`; insert `unit_definition`; `admin_link_legal_entity` |
 | Listing review | `listing` in review | `review_listing` |
-| Settings | `platform_setting` | Update `platform_setting` |
+| Settings | `platform_setting`, `country` | Update `platform_setting`; `admin_set_country_open` |
 
 Show admin navigation only when `is_admin()` returns true. The database refuses the calls anyway.
 

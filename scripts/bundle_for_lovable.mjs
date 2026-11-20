@@ -6,6 +6,13 @@
 //   dist/dryrun.sql   every migration in order, then the smoke script. The smoke
 //                     script always ends in an error, so nothing is kept.
 //
+// For a database that already has the core, pass the first version to apply:
+//
+//   node scripts/bundle_for_lovable.mjs --from 20261120090000
+//
+// That writes dist/update.sql (those migrations and their history rows) and
+// dist/update_dryrun.sql (the same, then the smoke script, so nothing is kept).
+//
 // The SQL editor runs a script as one transaction: if any statement fails, the
 // whole script is rolled back.
 //
@@ -18,6 +25,7 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const migrationsDir = join(root, 'supabase', 'migrations');
 const TAG = '$lsx_migration$';
+const NL = '\n';
 
 export function migrations() {
   return readdirSync(migrationsDir)
@@ -33,22 +41,40 @@ export function migrations() {
 }
 
 function body(list) {
-  return list.map((m) => `-- ===== ${m.file} =====\n${m.sql}\n`).join('\n');
+  return list.map((m) => `-- ===== ${m.file} =====${NL}${m.sql}${NL}`).join(NL);
+}
+
+function history(list) {
+  const rows = list.map((m) =>
+    `insert into supabase_migrations.schema_migrations (version, name, statements)${NL}` +
+    `values ('${m.version}', '${m.name}', array[${TAG}${m.sql}${TAG}]);${NL}`);
+  return `-- ===== migration history =====${NL}${rows.join(NL)}`;
+}
+
+function smoke() {
+  const sql = readFileSync(join(root, 'tests', 'real', 'smoke_on_supabase.sql'), 'utf8');
+  return `-- ===== smoke test, ends in an error on purpose =====${NL}${sql}`;
 }
 
 export function buildInstall() {
   const list = migrations();
-  const history = list
-    .map((m) =>
-      `insert into supabase_migrations.schema_migrations (version, name, statements)\n` +
-      `values ('${m.version}', '${m.name}', array[${TAG}${m.sql}${TAG}]);\n`)
-    .join('\n');
-  return `${body(list)}\n-- ===== migration history =====\n${history}`;
+  return `${body(list)}${NL}${history(list)}`;
 }
 
 export function buildDryRun() {
-  const smoke = readFileSync(join(root, 'tests', 'real', 'smoke_on_supabase.sql'), 'utf8');
-  return `${body(migrations())}\n-- ===== smoke test, ends in an error on purpose =====\n${smoke}`;
+  return `${body(migrations())}${NL}${smoke()}`;
+}
+
+/** Migrations from a version onward, with their history rows. */
+export function buildUpdate(fromVersion) {
+  const list = migrations().filter((m) => m.version >= fromVersion);
+  if (list.length === 0) throw new Error(`No migration at or after ${fromVersion}`);
+  return `${body(list)}${NL}${history(list)}`;
+}
+
+/** The same, then the smoke script: a rehearsal of the real update that keeps nothing. */
+export function buildUpdateDryRun(fromVersion) {
+  return `${buildUpdate(fromVersion)}${NL}${smoke()}`;
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
@@ -56,4 +82,11 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   writeFileSync(join(root, 'dist', 'install.sql'), buildInstall());
   writeFileSync(join(root, 'dist', 'dryrun.sql'), buildDryRun());
   console.log(`Wrote dist/install.sql and dist/dryrun.sql from ${migrations().length} migrations.`);
+  const at = process.argv.indexOf('--from');
+  if (at > 0) {
+    const from = process.argv[at + 1];
+    writeFileSync(join(root, 'dist', 'update.sql'), buildUpdate(from));
+    writeFileSync(join(root, 'dist', 'update_dryrun.sql'), buildUpdateDryRun(from));
+    console.log(`Wrote dist/update.sql and dist/update_dryrun.sql from version ${from}.`);
+  }
 }

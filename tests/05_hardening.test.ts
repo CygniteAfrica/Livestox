@@ -91,7 +91,7 @@ describe('increment 5: hardening', () => {
        where n.nspname = 'public' and has_function_privilege($1, p.oid, 'EXECUTE') order by 1`, [role])).rows.map((x) => x.f);
     expect(await fn('anon')).toEqual([]);
     expect(await fn('authenticated')).toEqual([
-      'accept_party_invite', 'add_lot_member', 'admin_link_legal_entity', 'admin_set_kyc_status', 'admin_set_verifier',
+      'accept_party_invite', 'add_lot_member', 'admin_link_legal_entity', 'admin_set_country_open', 'admin_set_kyc_status', 'admin_set_verifier',
       'can_read_animal', 'can_read_lot', 'cancel_listing', 'cancel_trade', 'close_task', 'create_listing', 'create_party',
       'form_lot', 'has_place_access', 'invite_party_member', 'invite_to_place', 'is_admin', 'is_party_member',
       'is_place_keeper', 'leave_place', 'lot_members_on', 'lot_verified', 'my_contacts', 'next_public_id',

@@ -13,7 +13,7 @@ A person always acts through a party. After sign-up, call `create_party` once, t
 | Table | Who | What |
 |---|---|---|
 | `profile` | The user | Update own `display_name`, `phone`, `locale`, `default_party_id` |
-| `place` | Owner or manager of the keeper party | Insert, update (not the keeper). Delete is owner only |
+| `place` | Owner or manager of the keeper party | Insert, update (not the keeper). Delete is owner only. The country must be one the user can see in `country`; otherwise the write fails with `COUNTRY_NOT_OPEN` |
 | `party` | Owner of the party | Update `full_name`, `phone`, `national_id`. Changing the name or ID number of a verified party returns its KYC to pending |
 
 ## People and places
@@ -71,6 +71,7 @@ Vets may record only: weight, diagnosis, treatment, vaccination, movement, pregn
 | `admin_set_kyc_status(p_party_id, p_status)` | Admin | Interim KYC switch until the full KYC case is built | `NOT_ADMIN` |
 | `admin_set_verifier(p_party_id, p_approved)` | Admin | Approves a vet practice to verify counts | `NOT_ADMIN` |
 | `admin_link_legal_entity(p_legal_entity_id, p_keeper_party_id)` | Admin | Lets a keeper form lots under a legal entity | `NOT_ADMIN` |
+| `admin_set_country_open(p_country_code, p_open)` | Admin | Opens or closes a country. Only open countries appear in the country list and accept new farms | `NOT_ADMIN`, `COUNTRY_NOT_FOUND` |
 
 ### The purchase screen flow
 

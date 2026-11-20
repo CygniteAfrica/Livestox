@@ -43,7 +43,7 @@ begin
   perform set_config('request.jwt.claim.sub', '', true);
   set local role anon;
   begin
-    perform public.create_party(p_party_type => 'farmer', p_full_name => 'Visitor', p_jurisdiction => 'ET');
+    perform public.create_party(p_party_type => 'farmer', p_full_name => 'Visitor', p_jurisdiction => 'KE');
     v_err := 'it ran';
   exception
     when insufficient_privilege then v_err := null;
@@ -59,20 +59,20 @@ begin
   -- 3. Parties, a farm, and a vet invited by email.
   perform set_config('request.jwt.claim.sub', v_admin::text, true);
   set local role authenticated;
-  v_admin_party := public.create_party(p_party_type => 'platform', p_full_name => 'Smoke Platform', p_jurisdiction => 'ET');
+  v_admin_party := public.create_party(p_party_type => 'platform', p_full_name => 'Smoke Platform', p_jurisdiction => 'KE');
   reset role;
 
   perform set_config('request.jwt.claim.sub', v_farmer::text, true);
   set local role authenticated;
-  v_farm_party := public.create_party(p_party_type => 'farmer', p_full_name => 'Smoke Hill Farm', p_jurisdiction => 'ET');
+  v_farm_party := public.create_party(p_party_type => 'farmer', p_full_name => 'Smoke Hill Farm', p_jurisdiction => 'KE');
   insert into public.place (place_type, name, keeper_party_id, country_code)
-    values ('farm', 'Smoke Hill Farm', v_farm_party, 'ET') returning id into v_farm;
+    values ('farm', 'Smoke Hill Farm', v_farm_party, 'KE') returning id into v_farm;
   v_access := public.invite_to_place(p_place_id => v_farm, p_contact => 'smoke-vet-' || v_vet || '@example.test', p_access_role => 'vet');
   reset role;
 
   perform set_config('request.jwt.claim.sub', v_vet::text, true);
   set local role authenticated;
-  v_vet_party := public.create_party(p_party_type => 'vetPractice', p_full_name => 'Smoke Vet Practice', p_jurisdiction => 'ET');
+  v_vet_party := public.create_party(p_party_type => 'vetPractice', p_full_name => 'Smoke Vet Practice', p_jurisdiction => 'KE');
   perform public.respond_place_invite(p_access_id => v_access, p_accept => true, p_party_id => v_vet_party);
   reset role;
   v_checks := v_checks + 1;
@@ -94,7 +94,7 @@ begin
   set local role authenticated;
   perform public.admin_set_verifier(p_party_id => v_vet_party, p_approved => true);
   insert into public.legal_entity (name, entity_type, jurisdiction, regulatory_status, trustee_party_id)
-    values ('Smoke Herd Trust', 'trust', 'ET', 'sandbox', v_admin_party) returning id into v_entity;
+    values ('Smoke Herd Trust', 'trust', 'KE', 'sandbox', v_admin_party) returning id into v_entity;
   insert into public.unit_definition (definition, price_source)
     values ('1 unit is one ten-thousandth of the lot', 'Listed price') returning id into v_unit;
   perform public.admin_link_legal_entity(p_legal_entity_id => v_entity, p_keeper_party_id => v_farm_party);
@@ -136,7 +136,7 @@ begin
   set local role authenticated;
   v_lot := public.form_lot(p_keeper_party_id => v_farm_party, p_name => 'Smoke lot', p_species_code => 1,
                            p_lot_class => 'dairy', p_place_id => v_farm, p_legal_entity_id => v_entity,
-                           p_unit_id => v_unit, p_settlement_currency => 'ETB', p_total_units => 10000,
+                           p_unit_id => v_unit, p_settlement_currency => 'KES', p_total_units => 10000,
                            p_keeper_units => 5100, p_start_date => date '2026-01-01', p_animal_ids => v_animals);
   reset role;
   -- This whole script is one transaction, so the count below is stamped with the
@@ -216,7 +216,7 @@ begin
   v_trade := public.reserve_units(p_listing_id => v_listing, p_buyer_party_id => v_buyer_party, p_units => 100);
   begin
     perform public.confirm_payment(p_provider_reference => 'x', p_provider_transaction_id => 'x',
-                                   p_amount_minor => 1, p_currency => 'ETB', p_channel => 'card', p_outcome => 'success');
+                                   p_amount_minor => 1, p_currency => 'KES', p_channel => 'card', p_outcome => 'success');
     v_err := 'it ran';
   exception
     when insufficient_privilege then v_err := null;
@@ -235,13 +235,13 @@ begin
   perform set_config('request.jwt.claim.sub', '', true);
   set local role service_role;
   v_result := public.confirm_payment(p_provider_reference => v_ref, p_provider_transaction_id => 'smoke-txn-' || v_trade,
-                                     p_amount_minor => v_total, p_currency => 'ETB', p_channel => 'mobile_money',
+                                     p_amount_minor => v_total, p_currency => 'KES', p_channel => 'mobile_money',
                                      p_outcome => 'success');
   reset role;
   if v_result <> 'settled' then raise exception 'SMOKE FAILED 12a: first notice gave %', v_result; end if;
   set local role service_role;
   v_result := public.confirm_payment(p_provider_reference => v_ref, p_provider_transaction_id => 'smoke-txn-' || v_trade,
-                                     p_amount_minor => v_total, p_currency => 'ETB', p_channel => 'mobile_money',
+                                     p_amount_minor => v_total, p_currency => 'KES', p_channel => 'mobile_money',
                                      p_outcome => 'success');
   reset role;
   if v_result <> 'duplicate' then raise exception 'SMOKE FAILED 12b: repeat notice gave %', v_result; end if;

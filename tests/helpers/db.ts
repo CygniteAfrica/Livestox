@@ -16,8 +16,12 @@ export function migrationFiles(): string[] {
  * A fresh in-memory Postgres with the Supabase stand-in and every migration applied.
  * With `prototype: true` a lookalike of the Lovable prototype's database is built
  * first, so the migrations run against the tables they will meet on Lovable.
+ *
+ * Most tests are set in Ethiopia, which a real install keeps closed until it is
+ * launched there. So Ethiopia is opened here once the migrations have run. Pass
+ * `asInstalled: true` to get the database exactly as an install leaves it.
  */
-export async function freshDb(opts: { prototype?: boolean } = {}): Promise<Db> {
+export async function freshDb(opts: { prototype?: boolean; asInstalled?: boolean } = {}): Promise<Db> {
   const db = new PGlite();
   await db.exec(readFileSync(join(here, 'supabase_shim.sql'), 'utf8'));
   if (opts.prototype) await db.exec(readFileSync(join(here, 'prototype_fixture.sql'), 'utf8'));
@@ -28,6 +32,7 @@ export async function freshDb(opts: { prototype?: boolean } = {}): Promise<Db> {
       throw new Error(`Migration ${f} failed: ${(e as Error).message}`);
     }
   }
+  if (!opts.asInstalled) await db.exec(`update public.country set is_open = true where code = 'ET'`);
   return db;
 }
 
