@@ -4,7 +4,7 @@ Updated 20 November 2026, during the third build session.
 
 ## Where things stand
 
-The database core is installed on the Lovable project's own database ('Livestox Connect', Postgres 17.6) and passes its smoke test there. The code is on branch `build/database-core`: seven increments, eight migrations, 119 automated tests, gate green.
+The database core is installed on the Lovable project's own database ('Livestox Connect', Postgres 17.6) and passes its smoke test there. The code is on branch `build/database-core`: eight increments, nine migrations, 123 automated tests, gate green.
 
 | Step on Lovable | State |
 |---|---|
@@ -13,7 +13,9 @@ The database core is installed on the Lovable project's own database ('Livestox 
 | Migration history | Seven rows recorded, each holding its file character for character |
 | Files in the Lovable project | The eight migrations are in `supabase/migrations/`. The function reference, spec, rules and UI brief are in `docs/core/`. All twelve files checked by SHA-256 against this repository |
 | Migration 8 (Kenya and open countries) | Applied 20 November 2026 with Charles's go-ahead ('Yes, Kenya first'). Kenya is open with shillings. Ethiopia is closed. Smoke test passed 15 of 15 afterwards |
-| Screens, slice 1 | Built by Lovable: accounts, welcome, inbox, farms, animals, diary, tasks, vet home. The build passes and the sign-in guard works. **Not tested signed in**: no data has been saved through the new screens by anyone |
+| Migration 9 (`my_invitations`) | **Not applied.** Rehearsed on the Lovable database and passed. Needs Charles's go-ahead, like every schema change there |
+| Screens, slice 1 | Built by Lovable and tested signed in: accounts, welcome, inbox, farms, animals, diary, tasks, vet home. All 20 steps of `docs/03_uat_slice_1.md` passed after four front-end fixes. The saved rows were checked in the database afterwards |
+| Review fixes for slice 1 | Sent to Lovable on 20 November 2026. See 'Slice 1: test and review' below for what was asked |
 | Screens, slices 2 to 4 | Not started. Lots, marketplace, listings, portfolio and admin show a 'Being rebuilt' page |
 
 The published app at livestox.life still runs the old screens against tables that have moved, so its signed-in pages do not work. Nothing has been published.
@@ -28,10 +30,11 @@ The published app at livestox.life still runs the old screens against tables tha
 | 5 | Hardening after the independent review | 27 | Green |
 | 6 | Installing beside the Lovable prototype: move its tables aside, carry accounts over, smoke script, install script | 23 | Green |
 | 7 | Kenya, and which countries the app offers | 4 | Green |
+| 8 | An invited person can see who is inviting them | 4 | Green |
 
 Run the gate with `./gate.sh` from the repository root. It prints `GATE: GREEN` or `GATE: RED`. GitHub runs the same gate on every pull request and on `main`.
 
-The branch is open as pull request 1 into `main` on `CygniteAfrica/Livestox`. It is not merged. Increments 6 and 7 are committed on this machine and not yet pushed.
+The branch is open as pull request 1 into `main` on `CygniteAfrica/Livestox`. It is not merged. Increments 6 to 8 are committed on this machine and not yet pushed.
 
 ## Installing on Lovable
 
@@ -57,6 +60,25 @@ How the install works:
 What the install changes for people: the published app at livestox.life reads the old tables, so its signed-in pages stop working until new screens are built on the core and published. The landing page is not affected. Farms, animals, diary entries, shares and KYC status are not copied into the new model; they stay readable in `legacy`.
 
 To undo an install: restore the 18:46 UTC backup from Cloud, Database, Manage, Backups. Anything written after that time is lost.
+
+## Slice 1: test and review
+
+Lovable ran the 20-step UAT in its preview with three temporary accounts (keeper, vet, stranger), which Charles approved. It saved real data through the screens. Four steps failed first time on front-end faults, which it fixed and re-ran: wording for a future birth date, a diary save that sent a currency with no cost, missing detail on a cancelled entry, and unclear refusals for a vet.
+
+What the database showed afterwards, read directly: one animal with a valid public ID (LSX000001MH); its weight went 300 kg, was corrected to 310 kg, and returned to 300 kg when the correction was cancelled; six diary entries, one cancelled, one recorded under the vet role; one farm in Kenya; three farm invitations, all ended.
+
+An independent code review read every slice 1 file against the function reference. It found every function call correctly named and typed, every list of allowed values matching the database, no reference to the old model, and no rule enforced only in the browser. It found one critical fault, the same diary save that the UAT caught, and these, which were sent to Lovable to fix:
+
+1. Correcting a diary entry dropped its disease, vaccine, medicine, cost, place and details.
+2. Cost had to be typed in cents, and a raw JSON box was shown.
+3. Errors caused by the user (a phone number in the wrong format, a tag already in use, a repeat invitation) showed only a general message.
+4. Retagging with a different tag kind added a second live tag instead of replacing one.
+5. A snoozed task never came back when its date arrived.
+6. 'Send invitation' sends nothing: the invited person sees it only when they next sign in.
+7. A farm worker was offered only the vet's kinds of diary entry.
+8. About fifteen smaller points of wording, empty pickers, time zones and leftover code.
+
+One point needed the database, not Lovable: an invited person could not see who invited them. That is migration 9.
 
 ## How the tests were checked
 
@@ -96,13 +118,13 @@ To undo an install: restore the 18:46 UTC backup from Cloud, Database, Manage, B
 
 ## What is next
 
-In order. Item 1 needs Charles.
+In order. Items 1 to 3 need Charles.
 
-1. Signed-in UAT of slice 1 with `docs/03_uat_slice_1.md`. It needs three test accounts on the preview. Lovable offered to create a temporary test user and was told no, because creating accounts is Charles's call.
-2. Slices 2 to 4 with Lovable, one message each, as set out in `docs/02_ui_brief.md`. Review each against the function reference before the next.
-3. Publish only on Charles's say-so.
-4. Decide what the `sandbox_exec` role should be allowed to do (open issue 14).
-5. Seed breeds, diseases, vaccines and medicines. All four lists are empty on Lovable. The fields are optional, so this does not block the screens.
+1. Apply migration 9 on the Lovable database: `node scripts/bundle_for_lovable.mjs --from 20261120100000`, then `dist/update.sql` in Lovable's SQL editor. Then give Lovable the file and the updated function reference so the inbox can name the sender.
+2. Decide what to do with the UAT records left on the live database (open issue 21).
+3. Decide the wording of the public pages (open issue 22).
+4. Slices 2 to 4 with Lovable, one message each, as set out in `docs/02_ui_brief.md`. Lots need an admin to link a legal entity first, so slice 4 (admin) may be better built before slice 2. Review and test each as slice 1 was.
+5. Publish only on Charles's say-so.
 6. A second gate on real Postgres in Docker with two connections, to prove the settlement and reservation locks.
 7. Increment 7: seed breeds, diseases and vaccines from the SSA workbook.
 8. Increment 8: the Paystack webhook as a Supabase edge function that calls `confirm_payment`, plus the scheduled call to `expire_trades`.
@@ -142,6 +164,10 @@ Found in the second session:
 19. From the second review, left as they are because the migration is already applied: the account carry-over is not safe to run twice by hand, it trusts any schema named `legacy`, and it trims only spaces from names. None of these can be reached through the install script.
 20. The smoke script advances two sequences each time it runs (about 16 public IDs and 21 audit log numbers). It leaves no rows.
 
+21. The slice 1 UAT left records on the live database: two accounts whose email starts `agent-test+`, the parties 'UAT keeper 20261120' and 'UAT vet practice 20261120', the farm 'UAT farm 20261120', one animal (LSX000001MH), six diary entries and three ended invitations. Lovable could not remove the accounts. The diary is built so that nobody can delete from it, so removing these rows means switching that protection off for a moment, by hand. Until then they are plainly labelled test data.
+22. The public pages were left alone on purpose and now disagree with the app. They describe owning a percentage of one animal and making offers, show 'USD 1,840' and 'Currency: USD', and use em dashes throughout. Wording is Charles's call.
+23. Deleting an account that has created records fails (first seen in the first review, now seen for real with the test accounts). Account closure needs its own design.
+
 ## Choices made that Charles should confirm
 
 1. Sex is one of the workbook's four values and birth date is required with a basis. The live app's 'Not sure yet' sex and empty birth date are gone.
@@ -163,3 +189,5 @@ Found in the second session:
 5. Everything run against the Lovable database in the second session was either read-only or rolled back. The one script that would have changed it, the install, was stopped before it was sent.
 6. Third session: Charles approved the install and it ran. An independent review of increment 6 reported after the install had started. It found no critical defect. Its points on the smoke script were fixed (ten broken-rule cases now fail it) and the rest are in the open issues above.
 7. Lovable's file-copy message cost 4.9 credits. The slice 1 message that stopped at the blocker also cost credits. The amount was not read.
+8. Lovable asked to create a temporary test user. It was told no the first time, because creating accounts is Charles's call. Charles then said 'Let Lovable test', and three requests were allowed once each.
+9. The gate once went red with no failing test: the runner crashed with eleven in-memory databases at once on a busy machine. It is now capped at four workers.
