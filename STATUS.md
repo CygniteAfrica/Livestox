@@ -21,7 +21,11 @@ The database core is installed on the Lovable project's own database ('Livestox 
 | Screens, slice 3 (market, portfolio, trade page) | Built, reviewed, tested signed in: 11 of 11 steps, as far as reserve and cancel. Payment is not connected, by design, so no trade can settle from a screen |
 | Review fixes | Three rounds sent to Lovable and done: 8 points, then 11, then 11 |
 
-The published app at livestox.life still runs the old screens against tables that have moved, so its signed-in pages do not work. Nothing has been published.
+**Published.** On 20 November 2026 Charles said 'Yes, publish' and the new screens went live on livestox.life. Before publishing, Lovable warned about its one security finding (any signed-in user can read `legal_entity`). That is intended, so 'Update anyway' was chosen and 'Try to fix' was not.
+
+Checked from outside after publishing: the home page and sign-in page load; `/lots`, `/welcome`, `/marketplace` and `/admin` exist and send a signed-out visitor to sign-in; the old `/offers` and `/watchlist` pages return 'Page not found'; the backend answers. **Not checked: signing in on the live site.** Claude does not enter passwords on a production site, so Charles should sign in once to confirm.
+
+What a visitor now meets that is not right yet: the public pages still describe owning a percentage of one animal and making offers, show 'USD', and use em dashes (open issue 22). Seven test accounts and their records are in the live data (open issue 21). Payment is not connected, so units cannot actually be bought.
 
 | Increment | What it covers | Tests | State |
 |---|---|---|---|
@@ -192,7 +196,7 @@ In order. Items 1 to 3 need Charles.
 
 1. Decide what to do with the UAT records on the live database (open issue 21).
 2. Decide the wording of the public pages (open issue 22).
-3. Say when to publish. The new screens are in Lovable's preview only. livestox.life still serves the old build, whose signed-in pages do not work.
+3. Sign in on livestox.life once to confirm the published build works for a real account.
 4. Retest slice 1 signed in, since two rounds of fixes went in after its test.
 5. The Paystack webhook and the scheduled call to `expire_trades`, so a reservation can be paid or lapse.
 6. A second gate on real Postgres in Docker with two connections, to prove the settlement and reservation locks.
