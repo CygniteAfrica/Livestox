@@ -18,7 +18,7 @@ declare
   v_admin_party uuid; v_farm_party uuid; v_vet_party uuid; v_buyer_party uuid;
   v_farm uuid; v_access uuid; v_entity uuid; v_unit uuid;
   v_animals uuid[] := '{}'; v_animal uuid; v_event uuid;
-  v_lot uuid; v_census uuid; v_listing uuid; v_trade uuid;
+  v_lot uuid; v_census uuid; v_listing uuid; v_trade uuid; v_rank uuid;
   v_ref text; v_total bigint; v_gross bigint; v_fee bigint; v_result text;
   v_n bigint; v_ok boolean; v_err text; v_checks int := 0;
   i int;
@@ -44,11 +44,16 @@ begin
   set local role anon;
   begin
     perform public.create_party(p_party_type => 'farmer', p_full_name => 'Visitor', p_jurisdiction => 'ET');
-    v_err := null;
-  exception when insufficient_privilege then v_err := sqlerrm;
+    v_err := 'it ran';
+  exception
+    when insufficient_privilege then v_err := null;
+    when others then v_err := sqlerrm;
   end;
   reset role;
-  if v_err is null then raise exception 'SMOKE FAILED 2: a visitor created a party'; end if;
+  if v_err is not null then raise exception 'SMOKE FAILED 2a: a visitor reached create_party (%)', v_err; end if;
+  select count(*) into v_n from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public' and has_function_privilege('anon', p.oid, 'execute');
+  if v_n <> 0 then raise exception 'SMOKE FAILED 2b: a visitor may run % functions', v_n; end if;
   v_checks := v_checks + 1;
 
   -- 3. Parties, a farm, and a vet invited by email.
@@ -75,9 +80,13 @@ begin
   -- 4. A stranger sees none of it.
   perform set_config('request.jwt.claim.sub', v_stranger::text, true);
   set local role authenticated;
-  select count(*) into v_n from public.party where id in (v_farm_party, v_vet_party, v_admin_party);
+  select (select count(*) from public.party where id in (v_farm_party, v_vet_party, v_admin_party))
+       + (select count(*) from public.party_member where party_id in (v_farm_party, v_vet_party, v_admin_party))
+       + (select count(*) from public.place where id = v_farm)
+       + (select count(*) from public.place_access where place_id = v_farm)
+    into v_n;
   reset role;
-  if v_n <> 0 then raise exception 'SMOKE FAILED 4: a stranger can read % other parties', v_n; end if;
+  if v_n <> 0 then raise exception 'SMOKE FAILED 4: a stranger can read % rows about other people''s parties and farms', v_n; end if;
   v_checks := v_checks + 1;
 
   -- 5. Admin set-up: verifier, legal entity, unit definition, link.
@@ -153,13 +162,17 @@ begin
   set local role authenticated;
   v_listing := public.create_listing(p_lot_id => v_lot, p_seller_party_id => v_farm_party, p_units => 4000,
                                      p_price_per_unit_minor => 12345);
+  select id into v_rank from public.rank where lot_id = v_lot order by id limit 1;
   begin
-    insert into public.stake (lot_id, party_id, units) values (v_lot, v_farm_party, 1);
-    v_err := null;
-  exception when others then v_err := sqlerrm;
+    insert into public.stake (lot_id, rank_id, party_id, units) values (v_lot, v_rank, v_farm_party, 1);
+    v_err := 'it ran';
+  exception
+    when insufficient_privilege then v_err := null;
+    when others then v_err := sqlerrm;
   end;
   reset role;
-  if v_err is null then raise exception 'SMOKE FAILED 9a: a farmer wrote a stake row directly'; end if;
+  if v_rank is null then raise exception 'SMOKE FAILED 9a: the keeper cannot see the ranks of their own lot'; end if;
+  if v_err is not null then raise exception 'SMOKE FAILED 9a: a direct stake write was not refused for lack of privilege (%)', v_err; end if;
 
   perform set_config('request.jwt.claim.sub', v_admin::text, true);
   set local role authenticated;
@@ -204,11 +217,13 @@ begin
   begin
     perform public.confirm_payment(p_provider_reference => 'x', p_provider_transaction_id => 'x',
                                    p_amount_minor => 1, p_currency => 'ETB', p_channel => 'card', p_outcome => 'success');
-    v_err := null;
-  exception when insufficient_privilege then v_err := sqlerrm;
+    v_err := 'it ran';
+  exception
+    when insufficient_privilege then v_err := null;
+    when others then v_err := sqlerrm;
   end;
   reset role;
-  if v_err is null then raise exception 'SMOKE FAILED 11a: a signed-in user could call confirm_payment'; end if;
+  if v_err is not null then raise exception 'SMOKE FAILED 11a: a signed-in user reached confirm_payment (%)', v_err; end if;
   select provider_reference, gross_minor, fee_minor, total_payable_minor into v_ref, v_gross, v_fee, v_total
     from public.trade where id = v_trade;
   if v_gross <> 1234500 or v_fee <> 24690 or v_total <> 1259190 then
@@ -266,9 +281,22 @@ begin
   select count(*) into v_n from pg_class c join pg_namespace n on n.oid = c.relnamespace
     where n.nspname = 'public' and c.relkind = 'r' and not c.relrowsecurity;
   if v_n <> 0 then raise exception 'SMOKE FAILED 15a: % public tables have row level security off', v_n; end if;
-  select count(*) into v_n from information_schema.role_table_grants
-    where table_schema = 'public' and grantee = 'anon' and privilege_type <> 'SELECT';
-  if v_n <> 0 then raise exception 'SMOKE FAILED 15b: a visitor holds % write privileges', v_n; end if;
+  -- has_table_privilege also sees what is granted to everyone (PUBLIC) and by column.
+  select string_agg(c.relname, ', ' order by c.relname) into v_err
+    from pg_class c join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public' and c.relkind = 'r'
+      and (has_table_privilege('anon', c.oid, 'insert, update, delete, truncate')
+           or has_any_column_privilege('anon', c.oid, 'insert, update'));
+  if v_err is not null then raise exception 'SMOKE FAILED 15b: a visitor may write to: %', v_err; end if;
+  -- Signed-in users write through functions. These six tables are the only ones
+  -- they may write to directly, and only the columns the core grants.
+  select string_agg(c.relname, ', ' order by c.relname) into v_err
+    from pg_class c join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public' and c.relkind = 'r'
+      and (has_table_privilege('authenticated', c.oid, 'insert, update, delete, truncate')
+           or has_any_column_privilege('authenticated', c.oid, 'insert, update'))
+      and c.relname <> all (array['profile', 'party', 'place', 'platform_setting', 'legal_entity', 'unit_definition']);
+  if v_err is not null then raise exception 'SMOKE FAILED 15c: signed-in users may write directly to: %', v_err; end if;
   v_checks := v_checks + 1;
 
   raise exception 'SMOKE PASSED: % of 15 checks. Rolled back on purpose; nothing was kept.', v_checks;

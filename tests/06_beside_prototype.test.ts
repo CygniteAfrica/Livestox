@@ -108,8 +108,6 @@ describe('increment 6: installing beside the Lovable prototype', () => {
     expect(party).toMatch(/^[0-9a-f-]{36}$/);
     const mine = await rowsAs<{ name: string }>(db, FARMER, `select full_name as name from public.party`);
     expect(mine.map((r) => r.name)).toEqual(['Carried Over Farm']);
-    const others = await rowsAs(db, ADMIN, `select full_name as name from public.party where false`);
-    expect(others).toEqual([]);
   });
 
   it('AC-6.8 running the move again changes nothing', async () => {
