@@ -14,12 +14,13 @@ The database core is installed on the Lovable project's own database ('Livestox 
 | Files in the Lovable project | The eight migrations are in `supabase/migrations/`. The function reference, spec, rules and UI brief are in `docs/core/`. All twelve files checked by SHA-256 against this repository |
 | Migration 8 (Kenya and open countries) | Applied 20 November 2026 with Charles's go-ahead ('Yes, Kenya first'). Kenya is open with shillings. Ethiopia is closed. Smoke test passed 15 of 15 afterwards |
 | Migration 9 (`my_invitations`) | Applied 20 November 2026 with Charles's go-ahead. Smoke test passed 15 of 15 afterwards. The inbox now names the party, the farm, the role and the sender |
-| Migration 10 (tag scope) | **Not applied.** Rehearsed on the Lovable database and passed. Needs Charles's go-ahead |
+| Migration 10 (tag scope) | Applied 20 November 2026 with Charles's go-ahead. Smoke test passed 15 of 15 afterwards. The file, the function reference, version 4 of the UI brief, the spec and the second UAT script are in the Lovable project, checked by SHA-256 |
 | Screens, slice 1 | Built and tested signed in: all 20 steps of `docs/03_uat_slice_1.md` passed after four front-end fixes, and the saved rows were checked in the database. A first round of review fixes went in afterwards and has not been tested signed in |
 | Screens, slice 4 (admin) | Built: admin home, parties and KYC, legal entities, listing review, settings. An independent review found every call, write and read matching the database. **Not tested signed in** |
 | Screens, slice 2 (lots, counts, checks) | Built. **Not reviewed and not tested signed in** |
 | Screens, slice 3 (market, portfolio, trade page) | Built. **Not reviewed and not tested signed in.** Payment is not connected, by design, so no trade can settle from a screen |
-| Second round of review fixes | Sent to Lovable on 20 November 2026. Result not read when this was written |
+| Second round of review fixes | Done by Lovable: all 11 points, 40 of its own tests passing. Not tested signed in |
+| Review of slices 2 and 3 | Started 20 November 2026. Result not in when this was written |
 
 The published app at livestox.life still runs the old screens against tables that have moved, so its signed-in pages do not work. Nothing has been published.
 
@@ -140,13 +141,13 @@ It listed these gaps in the database, none fixed yet:
 
 ## What is next
 
-In order. Items 1 to 4 need Charles.
+In order. Items 2 to 4 need Charles.
 
-1. Apply migration 10 on the Lovable database: `node scripts/bundle_for_lovable.mjs --from 20261120110000`, then `dist/update.sql` in Lovable's SQL editor. Then give Lovable the file, the function reference and version 4 of the UI brief.
+1. Read the review of slices 2 and 3 and send Lovable its fixes.
 2. Signed-in UAT of slices 2 to 4 with `docs/04_uat_slices_2_to_4.md`. It needs a real admin. Lovable's temporary test users cannot be admins, because nothing but the database can make one. Either Charles signs in as an admin on the preview, or one test account is made an admin by hand for the run.
 3. Decide what to do with the UAT records left on the live database (open issue 21).
 4. Decide the wording of the public pages (open issue 22).
-5. Read the result of the second round of review fixes, then have slices 2 and 3 reviewed against the function reference as slices 1 and 4 were.
+5. Publish only on Charles's say-so.
 6. A second gate on real Postgres in Docker with two connections, to prove the settlement and reservation locks.
 7. Increment 7: seed breeds, diseases and vaccines from the SSA workbook.
 8. Increment 8: the Paystack webhook as a Supabase edge function that calls `confirm_payment`, plus the scheduled call to `expire_trades`.
